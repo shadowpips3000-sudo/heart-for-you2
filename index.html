@@ -5,99 +5,104 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Heart Animation</title>
   <style>
-    * {
+    html, body {
+      width: 100%;
+      height: 100%;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
       background-color: #000;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       overflow: hidden;
-      font-family: Arial, sans-serif;
     }
 
-    .ui {
-      position: relative;
-    }
-
-    .love {
+    #container {
       position: absolute;
-      transform: translate(-50%, -50%);
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      /* Force GPU hardware acceleration */
+      will-change: transform;
     }
 
-    .love_word {
+    .heart-node {
+      position: absolute;
+      top: 0;
+      left: 0;
+      will-change: transform;
+    }
+
+    .heart-text {
       color: #ff69b4;
-      font-size: 13px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 11px;
       font-weight: bold;
       white-space: nowrap;
-      text-shadow: 
-        0 0 5px #ff69b4,
-        0 0 10px #ff69b4,
-        0 0 20px #ff007f,
-        0 0 35px #ff007f;
-      animation: pulse 1.8s ease-in-out infinite alternate;
+      /* Mobile-optimized single shadow layer */
+      text-shadow: 0 0 8px #ff007f;
+      animation: pulse 1.6s ease-in-out infinite alternate;
+      will-change: transform, opacity;
     }
 
     @keyframes pulse {
       0% {
         transform: scale(0.85);
-        opacity: 0.6;
+        opacity: 0.7;
       }
       100% {
-        transform: scale(1.15);
+        transform: scale(1.1);
         opacity: 1;
-        text-shadow: 
-          0 0 8px #ff69b4,
-          0 0 15px #ff69b4,
-          0 0 25px #ff007f,
-          0 0 45px #ff007f;
+        text-shadow: 0 0 12px #ff69b4;
       }
     }
   </style>
 </head>
 <body>
 
-  <div class="ui" id="ui"></div>
+  <div id="container"></div>
 
   <script>
-    const ui = document.getElementById("ui");
-    const totalItems = 100;
-    const scale = 16; // Scale factor for heart size
+    function drawHeart() {
+      const container = document.getElementById("container");
+      container.innerHTML = ""; 
 
-    for (let i = 1; i <= totalItems; i++) {
-      // Calculate angle t in radians
-      const t = (i / totalItems) * 2 * Math.PI;
+      // Reduced item count slightly for better mobile performance
+      const totalItems = 75; 
+      const scale = 11; // Optimized size for phone screens
 
-      // Heart parametric formulas
-      const x = 16 * Math.pow(Math.sin(t), 3);
-      const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+      const fragment = document.createDocumentFragment();
 
-      // Calculate tangent angle so the text rotates along the curve
-      const dx = 48 * Math.pow(Math.sin(t), 2) * Math.cos(t);
-      const dy = 13 * Math.sin(t) - 10 * Math.sin(2 * t) - 6 * Math.sin(3 * t) - 4 * Math.sin(4 * t);
-      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      for (let i = 0; i < totalItems; i++) {
+        const t = (i / totalItems) * Math.PI * 2;
 
-      const love = document.createElement("div");
-      love.className = "love";
-      
-      // Position and rotate directly via JS
-      love.style.left = `${x * scale}px`;
-      love.style.top = `${y * scale}px`;
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
 
-      const word = document.createElement("div");
-      word.className = "love_word";
-      word.textContent = "I love you";
-      word.style.transform = `rotate(${angle}deg)`;
-      word.style.animationDelay = `${i * 0.02}s`;
+        const dx = 48 * Math.pow(Math.sin(t), 2) * Math.cos(t);
+        const dy = 13 * Math.sin(t) - 10 * Math.sin(2 * t) - 6 * Math.sin(3 * t) - 4 * Math.sin(4 * t);
+        const angle = Math.atan2(-dy, dx) * (180 / Math.PI);
 
-      love.appendChild(word);
-      ui.appendChild(love);
+        const node = document.createElement("div");
+        node.className = "heart-node";
+        
+        // GPU-accelerated positioning using 3D transforms
+        const posX = x * scale;
+        const posY = y * scale;
+        node.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+
+        const text = document.createElement("div");
+        text.className = "heart-text";
+        text.textContent = "I love you";
+        text.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        text.style.animationDelay = `${(i * 0.025).toFixed(2)}s`;
+
+        node.appendChild(text);
+        fragment.appendChild(node);
+      }
+
+      container.appendChild(fragment);
     }
+
+    window.onload = drawHeart;
   </script>
 
 </body>
